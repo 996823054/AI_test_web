@@ -1,0 +1,57 @@
+{
+  "name": "@rsbuild/plugin-svgr",
+  "version": "1.2.2",
+  "description": "SVGR plugin for Rsbuild",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/web-infra-dev/rsbuild",
+    "directory": "packages/plugin-svgr"
+  },
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "compiled"
+  ],
+  "dependencies": {
+    "@rsbuild/plugin-react": "^1.1.0",
+    "@svgr/core": "8.1.0",
+    "@svgr/plugin-jsx": "8.1.0",
+    "@svgr/plugin-svgo": "8.1.0",
+    "deepmerge": "^4.3.1",
+    "loader-utils": "^3.3.1"
+  },
+  "devDependencies": {
+    "@rslib/core": "0.11.1",
+    "@types/node": "^22.17.0",
+    "file-loader": "6.2.0",
+    "prebundle": "1.4.0",
+    "svgo": "^3.3.2",
+    "typescript": "^5.9.2",
+    "url-loader": "4.1.1",
+    "@rsbuild/core": "1.4.14",
+    "@scripts/test-helper": "1.0.1"
+  },
+  "peerDependencies": {
+    "@rsbuild/core": "1.x"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "build": "rslib build",
+    "dev": "rslib build --watch",
+    "prebundle": "prebundle",
+    "bump": "npx bumpp --no-tag"
+  }
+}

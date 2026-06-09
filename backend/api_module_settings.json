@@ -1,0 +1,27 @@
+{
+  "environments": [
+    {
+      "id": "default",
+      "name": "默认环境",
+      "base_url": "",
+      "headers": {},
+      "variables": {},
+      "timeout": 30
+    }
+  ],
+  "variable_sets": [
+    {
+      "id": "default",
+      "name": "默认变量集",
+      "variables": {}
+    }
+  ],
+  "auth_profiles": [
+    {
+      "id": "none",
+      "name": "无鉴权",
+      "type": "none",
+      "config": {}
+    }
+  ]
+}

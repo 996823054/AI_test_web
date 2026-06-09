@@ -1,0 +1,25 @@
+# ===== Web 框架 =====
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+python-multipart==0.0.9
+
+# ===== 数据库 =====
+sqlalchemy==2.0.35
+# 如需 MySQL: pymysql==1.1.1
+
+# ===== 数据校验 =====
+pydantic==2.9.0
+
+# ===== HTTP 请求 =====
+requests==2.32.0
+
+# ===== AI 服务 =====
+openai==2.36.0
+arize-phoenix-evals==3.0.0
+
+# ===== 工具 =====
+python-dotenv==1.0.1
+pyyaml==6.0.2
+pypdf==5.4.0
+python-docx==1.1.2
+

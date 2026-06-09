@@ -1,0 +1,6 @@
+{
+  "name": "ai-test-web-midscene-ios-runner",
+  "private": true,
+  "type": "module",
+  "description": "JSON stdin/stdout bridge from FastAPI to local Midscene iOS SDK"
+}

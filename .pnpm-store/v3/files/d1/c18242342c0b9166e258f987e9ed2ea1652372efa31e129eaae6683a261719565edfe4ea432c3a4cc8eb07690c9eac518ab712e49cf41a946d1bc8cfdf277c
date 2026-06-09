@@ -1,0 +1,4 @@
+import type { Rspack } from '@rsbuild/core';
+export declare class ProtocolImportsPlugin {
+    apply(compiler: Rspack.Compiler): void;
+}

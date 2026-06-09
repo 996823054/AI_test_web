@@ -1,0 +1,19 @@
+{
+  "name": "ai_test_web",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "appium": "^3.4.2"
+  },
+  "devDependencies": {
+    "appium-uiautomator2-driver": "^7.2.2"
+  }
+}

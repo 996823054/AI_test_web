@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 测试平台 - 移动自动化页面原型</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-soft: #1f2937;
+      --panel-card: #0b1220;
+      --border: #243146;
+      --text: #e5edf7;
+      --muted: #94a3b8;
+      --primary: #38bdf8;
+      --primary-soft: rgba(56, 189, 248, 0.15);
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #08101d 0%, #0f172a 100%);
+      color: var(--text);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: rgba(6, 11, 20, 0.95);
+      border-right: 1px solid var(--border);
+      padding: 24px 18px;
+    }
+
+    .brand {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .brand-sub {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 28px;
+    }
+
+    .nav-group {
+      margin-bottom: 24px;
+    }
+
+    .nav-title {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .nav-item {
+      width: 100%;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text);
+      text-align: left;
+      padding: 12px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-bottom: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      background: var(--primary-soft);
+      border-color: rgba(56, 189, 248, 0.3);
+      color: #dff5ff;
+    }
+
+    .content {
+      padding: 22px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      gap: 12px;
+    }
+
+    .topbar h1 {
+      font-size: 24px;
+      margin: 0 0 6px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: #3b82f6;
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, #0ea5e9, #2563eb);
+      border-color: transparent;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      background: rgba(11, 18, 32, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .stat-card {
+      padding: 18px;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .stat-hint {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1.2fr 1fr;
+      gap: 16px;
+    }
+
+    .section {
+      padding: 18px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      gap: 8px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--muted);
+      background: rgba(148, 163, 184, 0.08);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .list-item {
+      padding: 14px;
+      background: rgba(31, 41, 55, 0.45);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+
+    .list-item.active {
+      border-color: rgba(56, 189, 248, 0.5);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .item-title {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .item-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status.idle {
+      color: #d4d4d8;
+      background: rgba(148, 163, 184, 0.16);
+    }
+
+    .status.running {
+      color: #fde68a;
+      background: rgba(245, 158, 11, 0.18);
+    }
+
+    .status.online {
+      color: #86efac;
+      background: rgba(34, 197, 94, 0.16);
+    }
+
+    .status.failed {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.18);
+    }
+
+    .status.passed {
+      color: #bbf7d0;
+      background: rgba(34, 197, 94, 0.18);
+    }
+
+    .steps {
+      margin-top: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .step {
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      font-size: 13px;
+      color: #dbe7f5;
+    }
+
+    .logs {
+      display: grid;
+      gap: 10px;
+      max-height: 480px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .log {
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      font-size: 13px;
+    }
+
+    .log-time {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .report-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .report-box {
+      padding: 12px;
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 14px;
+    }
+
+    .report-label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .report-value {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .report-notes {
+      font-size: 13px;
+      color: #dbe7f5;
+      line-height: 1.7;
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .footer-note {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: right;
+    }
+
+    @media (max-width: 1280px) {
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">AI Test Web</div>
+      <div class="brand-sub">移动自动化测试平台原型页</div>
+
+      <div class="nav-group">
+        <div class="nav-title">核心模块</div>
+        <button class="nav-item">接口管理</button>
+        <button class="nav-item">测试用例</button>
+        <button class="nav-item active">移动执行中心</button>
+        <button class="nav-item">报告中心</button>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-title">扩展能力</div>
+        <button class="nav-item">AI 助手</button>
+        <button class="nav-item">变更记录</button>
+        <button class="nav-item">设备管理</button>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="topbar">
+        <div>
+          <h1>移动自动化执行中心</h1>
+          <div class="subtitle">基于 Appium 的 Android 设备执行台，先覆盖设备选择、登录类 case、执行日志与结果报告。</div>
+        </div>
+        <div class="actions">
+          <button class="btn">刷新设备</button>
+          <button class="btn">批量执行</button>
+          <button class="btn primary">执行当前用例</button>
+        </div>
+      </div>
+
+      <section class="stats">
+        <div class="card stat-card">
+          <div class="stat-label">在线设备</div>
+          <div class="stat-value">3</div>
+          <div class="stat-hint">2 台真机，1 台模拟器</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label">移动用例数</div>
+          <div class="stat-value">28</div>
+          <div class="stat-hint">Android 先行，后续支持 iOS</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label">今日执行次数</div>
+          <div class="stat-value">64</div>
+          <div class="stat-hint">失败 7，执行中 1</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label">平均执行耗时</div>
+          <div class="stat-value">26s</div>
+          <div class="stat-hint">登录流场景平均耗时</div>
+        </div>
+      </section>
+
+      <section class="main-grid">
+        <div class="card section">
+          <div class="section-header">
+            <div class="section-title">设备列表</div>
+            <span class="badge">MVP 只支持 Android</span>
+          </div>
+          <div class="list">
+            <div class="list-item active">
+              <div class="item-title">Pixel_7_Android_14</div>
+              <div class="item-meta">
+                <span>emulator-5554</span>
+                <span>1080 x 2400</span>
+                <span>Android 14</span>
+              </div>
+              <span class="status online">在线 / 空闲</span>
+            </div>
+            <div class="list-item">
+              <div class="item-title">Xiaomi 13</div>
+              <div class="item-meta">
+                <span>USB 真机</span>
+                <span>Android 13</span>
+                <span>测试包已安装</span>
+              </div>
+              <span class="status running">运行中</span>
+            </div>
+            <div class="list-item">
+              <div class="item-title">Samsung S22</div>
+              <div class="item-meta">
+                <span>USB 真机</span>
+                <span>Android 13</span>
+                <span>待分配</span>
+              </div>
+              <span class="status idle">空闲</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card section">
+          <div class="section-header">
+            <div class="section-title">当前用例</div>
+            <span class="badge">步骤驱动模型</span>
+          </div>
+
+          <div class="list-item active">
+            <div class="item-title">登录成功 - Android</div>
+            <div class="item-meta">
+              <span>App 包名: `com.demo.app`</span>
+              <span>P0</span>
+              <span>来源: 手动维护</span>
+            </div>
+            <div class="steps">
+              <div class="step">1. 启动 App 并进入登录页</div>
+              <div class="step">2. 点击用户名输入框并输入 `test_user`</div>
+              <div class="step">3. 点击密码输入框并输入 `123456`</div>
+              <div class="step">4. 点击登录按钮</div>
+              <div class="step">5. 断言首页标题文案存在</div>
+            </div>
+          </div>
+
+          <div class="section-header" style="margin-top: 18px;">
+            <div class="section-title">执行日志</div>
+            <span class="badge">本次会话</span>
+          </div>
+
+          <div class="logs">
+            <div class="log">
+              <div class="log-time">14:36:12</div>
+              已创建 Appium 会话，设备 `Pixel_7_Android_14`
+            </div>
+            <div class="log">
+              <div class="log-time">14:36:15</div>
+              启动 App 成功，当前 Activity: `.LoginActivity`
+            </div>
+            <div class="log">
+              <div class="log-time">14:36:18</div>
+              通过 `id=com.demo.app:id/et_username` 定位用户名输入框
+            </div>
+            <div class="log">
+              <div class="log-time">14:36:21</div>
+              用户名输入完成，准备输入密码
+            </div>
+            <div class="log">
+              <div class="log-time">14:36:25</div>
+              密码输入完成，点击登录按钮
+            </div>
+            <div class="log">
+              <div class="log-time">14:36:31</div>
+              校验首页标题成功，本次执行通过
+            </div>
+          </div>
+        </div>
+
+        <div class="card section">
+          <div class="section-header">
+            <div class="section-title">执行结果概览</div>
+            <span class="badge">报告预览</span>
+          </div>
+
+          <div class="report-grid">
+            <div class="report-box">
+              <div class="report-label">执行状态</div>
+              <div class="report-value" style="color: var(--success);">Passed</div>
+            </div>
+            <div class="report-box">
+              <div class="report-label">总耗时</div>
+              <div class="report-value">19.4s</div>
+            </div>
+            <div class="report-box">
+              <div class="report-label">截图数量</div>
+              <div class="report-value">4</div>
+            </div>
+            <div class="report-box">
+              <div class="report-label">步骤通过率</div>
+              <div class="report-value">5 / 5</div>
+            </div>
+          </div>
+
+          <div class="report-notes">
+            <strong>AI 扩展预留：</strong><br />
+            1. 后续可以在失败截图上接入 AI 分析。<br />
+            2. 当元素定位失败时，可增加视觉识别兜底。<br />
+            3. 可基于自然语言自动生成移动端测试步骤。<br /><br />
+            <strong>当前最小可行能力：</strong><br />
+            设备选择、步骤执行、日志沉淀、截图留存、结果展示。
+          </div>
+
+          <div class="footer-note">
+            原型页目标：先确认信息结构和交互布局，再拆成 Vue 页面与组件。
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

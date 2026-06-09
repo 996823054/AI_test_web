@@ -1,0 +1,1 @@
+Users can pay orders with balance.

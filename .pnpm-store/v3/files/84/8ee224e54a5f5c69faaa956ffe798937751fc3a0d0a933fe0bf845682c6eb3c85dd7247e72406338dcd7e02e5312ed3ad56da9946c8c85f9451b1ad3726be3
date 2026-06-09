@@ -1,0 +1,37 @@
+import { normalize } from "node:path";
+import { callbackify } from "node:util";
+import { transform } from "@svgr/core";
+import plugin_jsx from "@svgr/plugin-jsx";
+import plugin_svgo from "@svgr/plugin-svgo";
+const transformSvg = callbackify(async (contents, config, state)=>transform(contents, config, state));
+function svgrLoader(contents) {
+    this?.cacheable();
+    const callback = this.async();
+    const options = this.getOptions();
+    const previousExport = (()=>{
+        if (contents.startsWith('export ')) return contents;
+        const exportMatches = contents.match(/^module.exports\s*=\s*(.*)/);
+        return exportMatches ? `export default ${exportMatches[1]}` : null;
+    })();
+    const state = {
+        caller: {
+            name: '@rsbuild/plugin-svgr',
+            previousExport,
+            defaultPlugins: [
+                plugin_svgo,
+                plugin_jsx
+            ]
+        },
+        filePath: normalize(this.resourcePath)
+    };
+    if (previousExport) this.fs.readFile(this.resourcePath, (err, result)=>{
+        if (err) return void callback(err);
+        transformSvg(String(result), options, state, (err, content)=>{
+            if (err) return void callback(err);
+            callback(null, content);
+        });
+    });
+    else transformSvg(contents, options, state, callback);
+}
+const loader = svgrLoader;
+export { loader as default };

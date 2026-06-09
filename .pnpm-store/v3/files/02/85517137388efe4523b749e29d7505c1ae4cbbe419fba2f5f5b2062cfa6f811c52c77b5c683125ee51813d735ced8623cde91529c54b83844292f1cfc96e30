@@ -1,0 +1,133 @@
+import { createRequire } from "node:module";
+class ProtocolImportsPlugin {
+    apply(compiler) {
+        compiler.hooks.normalModuleFactory.tap('NormalModuleReplacementPlugin', (nmf)=>{
+            nmf.hooks.beforeResolve.tap('NormalModuleReplacementPlugin', (resource)=>{
+                if (/^node:/.test(resource.request)) resource.request = resource.request.replace(/^node:/, '');
+            });
+        });
+    }
+}
+const libs_require = createRequire(import.meta.url);
+const builtinMappingResolved = {
+    assert: libs_require.resolve('assert/'),
+    buffer: libs_require.resolve('buffer/'),
+    child_process: null,
+    cluster: null,
+    console: libs_require.resolve('console-browserify'),
+    constants: libs_require.resolve('constants-browserify'),
+    crypto: libs_require.resolve('crypto-browserify'),
+    dgram: null,
+    dns: null,
+    domain: libs_require.resolve('domain-browser'),
+    events: libs_require.resolve('events/'),
+    fs: null,
+    http: libs_require.resolve('stream-http'),
+    https: libs_require.resolve('https-browserify'),
+    module: null,
+    net: null,
+    os: libs_require.resolve('os-browserify/browser.js'),
+    path: libs_require.resolve('path-browserify'),
+    punycode: libs_require.resolve('punycode/'),
+    process: libs_require.resolve('process/browser.js'),
+    querystring: libs_require.resolve('querystring-es3/'),
+    readline: null,
+    repl: null,
+    stream: libs_require.resolve('stream-browserify'),
+    _stream_duplex: libs_require.resolve('readable-stream/lib/_stream_duplex.js'),
+    _stream_passthrough: libs_require.resolve('readable-stream/lib/_stream_passthrough.js'),
+    _stream_readable: libs_require.resolve('readable-stream/lib/_stream_readable.js'),
+    _stream_transform: libs_require.resolve('readable-stream/lib/_stream_transform.js'),
+    _stream_writable: libs_require.resolve('readable-stream/lib/_stream_writable.js'),
+    string_decoder: libs_require.resolve('string_decoder/'),
+    sys: libs_require.resolve('util/util.js'),
+    timers: libs_require.resolve('timers-browserify'),
+    tls: null,
+    tty: libs_require.resolve('tty-browserify'),
+    url: libs_require.resolve('url/'),
+    util: libs_require.resolve('util/util.js'),
+    v8: null,
+    vm: libs_require.resolve('vm-browserify'),
+    zlib: libs_require.resolve('browserify-zlib')
+};
+const resolvedPolyfillToModules = Object.fromEntries(Object.entries(builtinMappingResolved).filter(([key])=>null !== key).map(([key, value])=>[
+        value,
+        key
+    ]));
+const resolvePolyfill = (libPath, overrides)=>{
+    if ((null == overrides ? void 0 : overrides[libPath]) !== void 0) return overrides[libPath];
+    return builtinMappingResolved[libPath];
+};
+const getResolveFallback = ({ protocolImports, exclude, include, overrides })=>{
+    if (exclude && include) throw new Error('`include` is mutually exclusive with `exclude`.');
+    const resolvedNodeLibs = include ? include : Object.keys(builtinMappingResolved).filter((name)=>!(exclude || []).includes(name));
+    const fallback = {};
+    for (const name of resolvedNodeLibs){
+        const libPath = resolvePolyfill(name, overrides);
+        fallback[name] = libPath ?? false;
+        if (protocolImports) fallback[`node:${name}`] = fallback[name];
+    }
+    return fallback;
+};
+const getProvideGlobals = async (globals = {}, overrides)=>{
+    const result = {};
+    const defaultOptions = {
+        bare: true,
+        global: false,
+        globalThis: false
+    };
+    if (false !== globals.Buffer) {
+        const options = 'object' == typeof globals.Buffer ? {
+            ...defaultOptions,
+            ...globals.Buffer
+        } : {
+            ...defaultOptions
+        };
+        const value = [
+            resolvePolyfill('buffer', overrides),
+            'Buffer'
+        ];
+        if (options.bare) result.Buffer = value;
+        if (options.global) result['global.Buffer'] = value;
+        if (options.globalThis) result['globalThis.Buffer'] = value;
+    }
+    if (false !== globals.process) {
+        const options = 'object' == typeof globals.process ? {
+            ...defaultOptions,
+            ...globals.process
+        } : {
+            ...defaultOptions
+        };
+        const value = [
+            resolvePolyfill('process', overrides)
+        ];
+        if (options.bare) result.process = value;
+        if (options.global) result['global.process'] = value;
+        if (options.globalThis) result['globalThis.process'] = value;
+    }
+    return result;
+};
+const PLUGIN_NODE_POLYFILL_NAME = 'rsbuild:node-polyfill';
+function pluginNodePolyfill(options = {}) {
+    const { protocolImports = true, include, exclude, overrides, force = false } = options;
+    return {
+        name: PLUGIN_NODE_POLYFILL_NAME,
+        setup (api) {
+            api.modifyBundlerChain(async (chain, { isServer, bundler })=>{
+                if (isServer && !force) return;
+                chain.resolve.fallback.merge(getResolveFallback({
+                    protocolImports,
+                    include: include,
+                    exclude,
+                    overrides
+                }));
+                const provideGlobals = await getProvideGlobals(options.globals, overrides);
+                if (Object.keys(provideGlobals).length) chain.plugin('node-polyfill-provide').use(bundler.ProvidePlugin, [
+                    provideGlobals
+                ]);
+                if (protocolImports) chain.plugin('protocol-imports').use(ProtocolImportsPlugin);
+            });
+        }
+    };
+}
+export { PLUGIN_NODE_POLYFILL_NAME, builtinMappingResolved, getProvideGlobals, getResolveFallback, pluginNodePolyfill, resolvePolyfill, resolvedPolyfillToModules };

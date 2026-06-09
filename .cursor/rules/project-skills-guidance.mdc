@@ -1,0 +1,28 @@
+---
+description: Default guidance for using project skills and AI platform context
+alwaysApply: true
+---
+
+# Project Skills Guidance
+
+When discussing, designing, or implementing this project, first consider the installed project skills under `.agents/skills/` and third-party skill references under `.agents/third-party-skills/`.
+
+Default behavior:
+
+- Use `diagnose` style thinking for bugs, failures, flaky execution, Appium issues, WebSocket issues, AI/Phoenix evaluation failures, and unclear root causes.
+- Use `tdd` style thinking for risky backend, runner, evaluator, report, RAG, and workflow changes: prefer small verifiable slices and clear regression checks.
+- Use `grill-with-docs` / `grill-me` style thinking when requirements are ambiguous, broad, or likely to affect platform information architecture.
+- Use `to-prd` / `to-issues` style thinking when turning `docs/product/AI测试平台PRD.md` or design discussions into implementation tasks.
+- Use `improve-codebase-architecture` / `zoom-out` style thinking when changes affect shared models, services, execution flow, RAG, Skills, Prompt, Evaluator, or report architecture.
+- Use `product-on-purpose/pm-skills` as product management guidance for personas, problem statements, JTBD, opportunity trees, OKRs, acceptance criteria, dashboards, and iteration decisions.
+- Use `github/awesome-copilot` PRD / Product Manager Advisor references for PRD structure, measurable success criteria, user stories, non-goals, AI evaluation strategy, and issue quality.
+
+Project-specific context:
+
+- Treat `docs/product/AI测试平台PRD.md` as the primary product direction for the AI testing platform.
+- Treat `docs/product/AI测试平台模块功能逻辑确认.md` as the confirmed module logic and product boundary reference.
+- Treat installed and third-party skills as development/product methodology, not as runtime business features.
+- For platform runtime capability, prefer project-owned skills such as `RequirementParseSkill`, `RagRetrieveSkill`, `CaseGenerateSkill`, `CoverageEvaluateSkill`, `PhoenixEvaluateSkill`, and `FailureAnalysisSkill`.
+- Keep AI-generated outputs human-confirmed before becoming formal testing assets.
+- Favor the platform direction: testing asset center + execution center + AI assistant + change governance.
+- When methodology conflicts occur, resolve by reference order: `docs/product/AI测试平台PRD.md` -> `docs/product/AI测试平台模块功能逻辑确认.md` -> `CONTEXT.md` -> `.cursor/rules/` -> `.agents/skills/` -> `.agents/third-party-skills/`.

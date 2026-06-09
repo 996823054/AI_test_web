@@ -1,0 +1,166 @@
+{
+  "phoenix": {
+    "enabled": true,
+    "default_evaluator": "hallucination",
+    "threshold": 0.9,
+    "module_thresholds": []
+  },
+  "rag": {
+    "enabled": true,
+    "coarse_count": 50,
+    "rerank_count": 10,
+    "display_count": 20,
+    "negative_samples_enabled": true,
+    "weights": {
+      "requirement": 1.0,
+      "case": 1.0,
+      "bug": 0.8,
+      "report": 0.7
+    }
+  },
+  "prompt": {
+    "default_template": "default",
+    "version": "v1",
+    "evaluation_required": true,
+    "rollback_enabled": true
+  },
+  "appium": {
+    "server_url": "http://127.0.0.1:4723",
+    "default_timeout": 300,
+    "capability_template": {
+      "platformName": "iOS",
+      "automationName": "XCUITest"
+    }
+  },
+  "report": {
+    "retention_days": 14,
+    "artifact_retention_days": 14,
+    "export_formats": [
+      "html",
+      "markdown",
+      "json"
+    ],
+    "export_masking": true
+  },
+  "security": {
+    "masking_enabled": true,
+    "mask_fields": [
+      "password",
+      "token",
+      "authorization",
+      "cookie",
+      "secret",
+      "api_key",
+      "phone",
+      "id_card"
+    ],
+    "audit_enabled": true
+  },
+  "cost": {
+    "enabled": true,
+    "token_limit_per_day": 200000,
+    "call_limit_per_day": 1000,
+    "alert_threshold": 0.8,
+    "model_prices": {}
+  },
+  "platform": {
+    "default_environment": "default",
+    "timezone": "Asia/Shanghai",
+    "workspace_name": "AI 自动化测试平台"
+  },
+  "ai_models": [
+    {
+      "id": "env-default",
+      "name": "deepseek",
+      "provider": "deepseek",
+      "model": "deepseek-v4-pro",
+      "api_key": "sk-dbec026224c045c8aa9e72cf92acbb30",
+      "base_url": "https://api.deepseek.com",
+      "temperature": 0.3,
+      "max_tokens": 4096,
+      "timeout": 30,
+      "enabled": true,
+      "is_default": true,
+      "connection_status": "passed",
+      "last_check_at": "2026-05-31T21:47:13",
+      "last_check_message": "连接检测通过",
+      "latency_ms": 1223,
+      "test_prompt": "请只返回 ok",
+      "test_response_preview": "",
+      "error_code": "",
+      "error_detail": "",
+      "created_by": "system",
+      "created_at": "",
+      "updated_at": "2026-05-31T21:47:14",
+      "api_protocol": "openai_compatible",
+      "auth_type": "bearer"
+    }
+  ],
+  "ai_providers": [
+    {
+      "id": "openai",
+      "name": "OpenAI",
+      "api_protocol": "openai_compatible",
+      "base_url": "https://api.openai.com/v1",
+      "auth_type": "bearer",
+      "default_model": "gpt-4o",
+      "enabled": true,
+      "is_builtin": true,
+      "description": "OpenAI 官方接口",
+      "created_at": "",
+      "updated_at": ""
+    },
+    {
+      "id": "deepseek",
+      "name": "DeepSeek",
+      "api_protocol": "openai_compatible",
+      "base_url": "https://api.deepseek.com",
+      "auth_type": "bearer",
+      "default_model": "deepseek-chat",
+      "enabled": true,
+      "is_builtin": true,
+      "description": "DeepSeek OpenAI 兼容接口",
+      "created_at": "",
+      "updated_at": ""
+    },
+    {
+      "id": "qwen",
+      "name": "通义千问",
+      "api_protocol": "openai_compatible",
+      "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "auth_type": "bearer",
+      "default_model": "qwen-plus",
+      "enabled": true,
+      "is_builtin": true,
+      "description": "DashScope OpenAI 兼容模式",
+      "created_at": "",
+      "updated_at": ""
+    },
+    {
+      "id": "groq",
+      "name": "Groq",
+      "api_protocol": "openai_compatible",
+      "base_url": "https://api.groq.com/openai/v1",
+      "auth_type": "bearer",
+      "default_model": "llama-3.1-8b-instant",
+      "enabled": true,
+      "is_builtin": true,
+      "description": "Groq OpenAI 兼容接口",
+      "created_at": "",
+      "updated_at": ""
+    },
+    {
+      "id": "custom",
+      "name": "自定义兼容服务",
+      "api_protocol": "openai_compatible",
+      "base_url": "",
+      "auth_type": "bearer",
+      "default_model": "",
+      "enabled": true,
+      "is_builtin": true,
+      "description": "自定义 OpenAI 兼容接口",
+      "created_at": "",
+      "updated_at": "2026-05-11T16:30:42"
+    }
+  ]
+}

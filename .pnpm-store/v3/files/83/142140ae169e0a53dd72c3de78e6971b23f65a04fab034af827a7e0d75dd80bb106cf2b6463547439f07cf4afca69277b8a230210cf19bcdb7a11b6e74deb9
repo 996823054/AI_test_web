@@ -1,0 +1,92 @@
+import type { RsbuildPlugin } from '@rsbuild/core';
+type GlobalsOption = {
+    /**
+     * Whether to inject the polyfill for direct identifier usage,
+     * e.g. `Buffer` or `process` (bare usage without any object prefix).
+     * @default true
+     */
+    bare?: boolean;
+    /**
+     * Whether to inject the polyfill for usage via the `global` object,
+     * e.g. `global.Buffer` or `global.process`.
+     * @default false
+     */
+    global?: boolean;
+    /**
+     * Whether to inject the polyfill for usage via the `globalThis` object,
+     * e.g. `globalThis.Buffer` or `globalThis.process`.
+     * @default false
+     */
+    globalThis?: boolean;
+};
+type Globals = {
+    /**
+     * Configure polyfill injection for the `process` global variable.
+     * - Set to `false` to disable all polyfills for `process`.
+     * - Set to `true` to enable only bare identifier polyfill (e.g. `process`).
+     * - Or provide a {@link GlobalsOption} object for fine-grained control.
+     */
+    process?: boolean | GlobalsOption;
+    /**
+     * Configure polyfill injection for the `Buffer` global variable.
+     * - Set to `false` to disable all polyfills for `Buffer`.
+     * - Set to `true` to enable only bare identifier polyfill (e.g. `Buffer`).
+     * - Or provide a {@link GlobalsOption} object for fine-grained control.
+     */
+    Buffer?: boolean | GlobalsOption;
+};
+export type PluginNodePolyfillOptions = {
+    /**
+     * Whether to provide polyfill of globals.
+     * @default
+     * {
+     *   Buffer: {
+     *     bare: true,
+     *     global: false,
+     *  	 globalThis: false,
+     *   }
+     *   process: {
+     *     bare: true,
+     *  	 global: false,
+     * 	   globalThis: false,
+     *   }
+     * }
+     */
+    globals?: Globals;
+    /**
+     * Whether to polyfill Node.js builtin modules starting with `node:`.
+     * @see https://nodejs.org/api/esm.html#node-imports
+     * @default true
+     */
+    protocolImports?: boolean;
+    /**
+     * Exclude certain modules to be polyfilled.
+     * This option is mutually exclusive with {@link PluginNodePolyfillOptions.include | `include`}.
+     * @default undefined
+     */
+    exclude?: string[];
+    /**
+     * Only include certain modules to be polyfilled.
+     * This option is mutually exclusive with {@link PluginNodePolyfillOptions.exclude | `exclude`}.
+     * @default undefined
+     */
+    include?: string[];
+    /**
+     * Override the default polyfills for specific modules.
+     * @default undefined
+     */
+    overrides?: Record<string, string | false>;
+    /**
+     * By default, the plugin only polyfills the browser-side code.
+     * If you want to polyfill the server-side code as well (when `output.target` is `node`),
+     * you can set the `force` option to `true`.
+     * @default false
+     */
+    force?: boolean;
+};
+export declare const resolvePolyfill: (libPath: string, overrides?: PluginNodePolyfillOptions["overrides"]) => string | false | null;
+export declare const getResolveFallback: ({ protocolImports, exclude, include, overrides, }: Pick<PluginNodePolyfillOptions, "protocolImports" | "exclude" | "include" | "overrides">) => Record<string, string | false>;
+export declare const getProvideGlobals: (globals?: Globals, overrides?: PluginNodePolyfillOptions["overrides"]) => Promise<Record<string, string | string[]>>;
+export declare const PLUGIN_NODE_POLYFILL_NAME = "rsbuild:node-polyfill";
+export declare function pluginNodePolyfill(options?: PluginNodePolyfillOptions): RsbuildPlugin;
+export { builtinMappingResolved, resolvedPolyfillToModules, } from './libs.js';

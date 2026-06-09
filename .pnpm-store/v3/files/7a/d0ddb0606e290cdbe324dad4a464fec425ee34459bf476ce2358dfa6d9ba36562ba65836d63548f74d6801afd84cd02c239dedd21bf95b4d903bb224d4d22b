@@ -1,0 +1,68 @@
+import node_fs from "node:fs";
+import { createRequire } from "node:module";
+import deepmerge from "deepmerge";
+import json5 from "json5";
+import { reduceConfigs } from "reduce-configs";
+import { TsCheckerRspackPlugin } from "ts-checker-rspack-plugin";
+const src_require = createRequire(import.meta.url);
+const PLUGIN_TYPE_CHECK_NAME = 'rsbuild:type-check';
+const pluginTypeCheck = (options = {})=>({
+        name: PLUGIN_TYPE_CHECK_NAME,
+        setup (api) {
+            const logger = api.logger ?? console;
+            const NODE_MODULES_REGEX = /[\\/]node_modules[\\/]/;
+            const checkedTsconfig = new Map();
+            api.modifyBundlerChain(async (chain, { isProd, environment, CHAIN_ID })=>{
+                const { enable = true, forkTsCheckerOptions } = options;
+                let { tsCheckerOptions } = options;
+                const { tsconfigPath } = environment;
+                if (void 0 === tsCheckerOptions && void 0 !== forkTsCheckerOptions) tsCheckerOptions = forkTsCheckerOptions;
+                if (!tsconfigPath || false === enable) return;
+                if (checkedTsconfig.has(tsconfigPath) && checkedTsconfig.get(tsconfigPath) !== environment.name) return;
+                checkedTsconfig.set(tsconfigPath, environment.name);
+                let typescriptPath;
+                try {
+                    typescriptPath = src_require.resolve("typescript", {
+                        paths: [
+                            api.context.rootPath
+                        ]
+                    });
+                } catch (err) {
+                    logger.warn('"typescript" is not found in current project, Type checker will not work.');
+                    return;
+                }
+                const { references } = json5.parse(node_fs.readFileSync(tsconfigPath, 'utf-8'));
+                const useReference = Array.isArray(references) && references.length > 0;
+                const defaultOptions = {
+                    typescript: {
+                        mode: 'readonly',
+                        build: useReference,
+                        memoryLimit: 8192,
+                        configFile: tsconfigPath,
+                        typescriptPath
+                    },
+                    issue: {
+                        exclude: [
+                            ({ file = '' })=>NODE_MODULES_REGEX.test(file)
+                        ]
+                    },
+                    logger: {
+                        log () {},
+                        error (message) {
+                            console.error(message.replace(/ERROR/g, 'Type Error'));
+                        }
+                    }
+                };
+                const mergedOptions = reduceConfigs({
+                    initial: defaultOptions,
+                    config: tsCheckerOptions,
+                    mergeFn: deepmerge
+                });
+                if (isProd) logger.info('Type checker is enabled. It may take some time.');
+                chain.plugin(CHAIN_ID.PLUGIN.TS_CHECKER).use(TsCheckerRspackPlugin, [
+                    mergedOptions
+                ]);
+            });
+        }
+    });
+export { PLUGIN_TYPE_CHECK_NAME, pluginTypeCheck };
