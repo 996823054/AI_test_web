@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Runtime data
+.logs/
+logs/
+*.db
+*.sqlite
+*.sqlite3
+uploads/
+backend/uploads/
+artifacts/
+
+# Frontend and Node generated content
+dist/
+node_modules/
+.vite/
+.vitest/
+
+# IDE and local agent tooling
+.idea/
+.superpowers/

@@ -47,7 +47,7 @@ Implement one user-visible behavior at a time from test to backend to frontend.
 必须先参考：
 - docs/product/AI测试平台PRD.md
 - docs/product/AI测试平台模块功能逻辑确认.md
-- docs/product/AI测试平台开发任务拆分.md
+- docs/delivery/AI测试平台开发任务拆分.md
 - .agents/skills/tdd/SKILL.md
 - .agents/skills/diagnose/SKILL.md
 

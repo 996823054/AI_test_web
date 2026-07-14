@@ -47,7 +47,7 @@ Prevent “AI says done, but PRD is not satisfied” by making PRD clauses the c
 必须先阅读：
 - docs/product/AI测试平台PRD.md
 - docs/product/AI测试平台模块功能逻辑确认.md
-- docs/product/AI测试平台开发任务拆分.md
+- docs/delivery/AI测试平台开发任务拆分.md
 - .agents/skills/diagnose/SKILL.md
 - .agents/skills/tdd/SKILL.md
 

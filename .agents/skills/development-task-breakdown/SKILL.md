@@ -45,7 +45,7 @@ Split plans into vertical slices that each deliver user-visible, testable behavi
 请把这个 PRD / 技术方案拆成可执行开发任务。
 
 必须参考：
-- docs/product/AI测试平台开发任务拆分.md 的格式
+- docs/delivery/AI测试平台开发任务拆分.md 的格式
 - .agents/skills/to-issues/SKILL.md
 - .agents/skills/tdd/SKILL.md
 

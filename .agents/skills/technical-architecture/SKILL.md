@@ -48,7 +48,7 @@ Design implementation architecture that maps PRD requirements to modules, APIs, 
 - CONTEXT.md
 - docs/product/AI测试平台PRD.md
 - docs/product/AI测试平台模块功能逻辑确认.md
-- docs/technical/
+- docs/architecture/
 - .agents/skills/improve-codebase-architecture/SKILL.md
 - .agents/skills/tdd/SKILL.md
 
