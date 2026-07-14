@@ -48,6 +48,7 @@ class ApiDocumentParseSkill(BaseSkill):
         openapi_endpoints = self._parse_openapi_paths(content)
         endpoints = self._merge_endpoints(overview_endpoints, detail_endpoints + openapi_endpoints)
         status_scenarios = self._extract_status_scenarios(content, base_url)
+        expects_status_endpoint = self._expects_status_endpoint(content, title, base_url)
         if status_scenarios and "/status/{codes}" not in {endpoint.get("path") for endpoint in endpoints}:
             endpoints.append({
                 "category": "Status codes",
@@ -64,7 +65,7 @@ class ApiDocumentParseSkill(BaseSkill):
             warnings.append("未识别到基础地址，生成 case 时将使用相对 path。")
         if not endpoints:
             warnings.append("未识别到接口清单，请检查文档是否包含接口总览表或接口标题。")
-        if "/status/{codes}" not in {endpoint.get("path") for endpoint in endpoints} and not status_scenarios:
+        if expects_status_endpoint and "/status/{codes}" not in {endpoint.get("path") for endpoint in endpoints} and not status_scenarios:
             warnings.append("未识别到状态码专项接口。")
 
         return {
@@ -273,6 +274,13 @@ class ApiDocumentParseSkill(BaseSkill):
         ordered = [scenarios_by_key.pop(key) for key in preferred if key in scenarios_by_key]
         ordered.extend(scenarios_by_key.values())
         return ordered
+
+    def _expects_status_endpoint(self, content: str, title: str, base_url: str) -> bool:
+        del title
+        source = f"{base_url}\n{content}".lower()
+        if "/status/{codes}" in source or re.search(r"/status/[1-5]\d\d", source):
+            return True
+        return "httpbin" in base_url.lower() and "状态码" in content
 
     def _merge_endpoints(self, overview: List[Dict[str, Any]], details: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         merged = {item["path"]: {**item} for item in overview}

@@ -96,6 +96,18 @@ describe('Requirements issue workbench layout', () => {
     expect(styles).not.toContain('grid-template-columns: minmax(0, 1.25fr) minmax(220px, 0.75fr);')
   })
 
+  it('centers the more-actions summary text like a normal small button', () => {
+    const styles = readFileSync(
+      resolve(process.cwd(), 'src/styles/components.css'),
+      'utf-8',
+    )
+    const rule = styles.match(/\.issue-action-more > summary\s*\{[^}]+\}/)?.[0] || ''
+
+    expect(rule).toContain('display: inline-flex;')
+    expect(rule).toContain('align-items: center;')
+    expect(rule).toContain('justify-content: center;')
+  })
+
   it('uses backend rechecked document result after issue text revision actions', () => {
     const component = readFileSync(
       resolve(process.cwd(), 'src/modules/requirements/pages/RequirementsPage.vue'),
@@ -123,5 +135,19 @@ describe('Requirements issue workbench layout', () => {
     )
 
     expect(component).toContain("selectedDocument.value.parse_status === 'check_failed'")
+  })
+
+  it('uses issue-type driven actions instead of a permanent accept-ai-suggestion button', () => {
+    const component = readFileSync(
+      resolve(process.cwd(), 'src/modules/requirements/pages/RequirementsPage.vue'),
+      'utf-8',
+    )
+
+    expect(component).toContain('确认无误')
+    expect(component).toContain('补充说明')
+    expect(component).toContain('应用 AI 修订')
+    expect(component).toContain('canApplyAiRevision(issue)')
+    expect(component).toContain('canConfirmIssueJudgement(issue)')
+    expect(component).not.toContain('采纳 AI 建议</button>')
   })
 })

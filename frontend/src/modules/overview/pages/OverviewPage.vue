@@ -3,7 +3,14 @@
     <PageHeader
       title="首页 / 质量驾驶舱"
       subtitle="查看平台健康状态、资产概览，并快速进入需求中心、Case 中心与系统设置。"
-    />
+    >
+      <template #actions>
+        <div class="hero-search">
+          <span>搜索</span>
+          <strong>需求、Case、AI 配置或质量资产</strong>
+        </div>
+      </template>
+    </PageHeader>
 
     <section class="metric-grid">
       <article class="metric-card">
@@ -29,7 +36,7 @@
     </section>
 
     <section class="panel-card">
-      <div class="panel-card-header">模块快捷入口</div>
+      <div class="panel-card-header">精选推荐</div>
       <div class="panel-card-body">
         <div class="quick-links">
           <RouterLink to="/requirements" class="quick-link-card">

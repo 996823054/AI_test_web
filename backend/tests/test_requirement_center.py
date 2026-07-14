@@ -24,7 +24,9 @@ def load_httpbin_markdown() -> str:
     ]
     for candidate in candidates:
         if candidate.exists():
-            return candidate.read_text(encoding="utf-8")
+            content = candidate.read_text(encoding="utf-8")
+            if "/status/{codes}" in content or "/status/200" in content:
+                return content
 
     return """
 # httpbin 全量接口文档
@@ -43,6 +45,38 @@ GET https://httpbin.org/status/200
 GET https://httpbin.org/status/404
 GET https://httpbin.org/status/500
 GET https://httpbin.org/status/200,400,500
+"""
+
+
+def load_jsonplaceholder_markdown() -> str:
+    return """
+# JSONPlaceholder REST API 接口文档
+
+| 项目 | 内容 |
+| --- | --- |
+| 基础地址 | `https://jsonplaceholder.typicode.com` |
+
+| Method | Path | 说明 |
+| --- | --- | --- |
+| `GET` | `/posts` | 查询文章列表 |
+| `GET` | `/posts/1` | 查询指定文章详情 |
+| `POST` | `/posts` | 创建文章 |
+
+```yaml
+openapi: 3.0.3
+paths:
+  /posts:
+    get:
+      summary: 查询文章列表
+      responses:
+        "200":
+          description: 成功
+    post:
+      summary: 创建文章
+      responses:
+        "201":
+          description: 创建成功
+```
 """
 
 
@@ -66,6 +100,26 @@ class RequirementCenterTests(unittest.TestCase):
             ["/status/200", "/status/404", "/status/500", "/status/200,400,500"],
         )
         self.assertTrue(analysis["completeness"]["ready_for_api_case"])
+
+    def test_parse_rest_api_document_without_status_endpoint_does_not_warn_status_special(self):
+        analysis = ApiDocumentParseSkill().parse_document(
+            load_jsonplaceholder_markdown(),
+            "JSONPlaceholder REST API 接口文档",
+        )
+
+        self.assertEqual(analysis["base_url"], "https://jsonplaceholder.typicode.com")
+        self.assertIn("/posts", {item["path"] for item in analysis["endpoints"]})
+        self.assertNotIn("未识别到状态码专项接口。", analysis["warnings"])
+
+    def test_parse_rest_api_document_with_misleading_file_title_does_not_warn_status_special(self):
+        analysis = ApiDocumentParseSkill().parse_document(
+            load_jsonplaceholder_markdown(),
+            "httpbin状态码接口文档",
+        )
+
+        self.assertEqual(analysis["base_url"], "https://jsonplaceholder.typicode.com")
+        self.assertIn("/posts", {item["path"] for item in analysis["endpoints"]})
+        self.assertNotIn("未识别到状态码专项接口。", analysis["warnings"])
 
     def test_generate_status_code_api_case_drafts(self):
         service = RequirementDocService.__new__(RequirementDocService)

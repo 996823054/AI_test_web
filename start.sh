@@ -121,7 +121,7 @@ start_services() {
         exit 1
     fi
     cd "$BACKEND_DIR"
-    .venv/bin/python run.py > "$LOG_DIR/backend.log" 2>&1 &
+    nohup .venv/bin/python run.py > "$LOG_DIR/backend.log" 2>&1 < /dev/null &
     BACKEND_PID=$!
 
     # 等待后端就绪
@@ -146,7 +146,7 @@ start_services() {
     # 启动前端
     echo -e "${YELLOW}[2/2] 启动前端...${NC}"
     cd "$FRONTEND_DIR"
-    npx vite --host 0.0.0.0 --port $FRONTEND_PORT > "$LOG_DIR/frontend.log" 2>&1 &
+    nohup npx vite --host 0.0.0.0 --port $FRONTEND_PORT > "$LOG_DIR/frontend.log" 2>&1 < /dev/null &
     FRONTEND_PID=$!
 
     for i in {1..10}; do

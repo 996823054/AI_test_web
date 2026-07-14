@@ -1,23 +1,65 @@
 :root {
-  --color-bg: #f4f6f9;
+  /* Surfaces & background */
+  --color-bg: #f7faff;
+  --color-bg-gradient: linear-gradient(0deg, #e3eeff 0%, #f7faff 28%, #ffffff 48%);
   --color-surface: #ffffff;
-  --color-sidebar: #151922;
-  --color-sidebar-hover: #1f2430;
-  --color-sidebar-active: #2563eb;
-  --color-border: #e2e8f0;
-  --color-text: #0f172a;
-  --color-text-muted: #64748b;
-  --color-primary: #2563eb;
-  --color-primary-soft: #eff6ff;
-  --color-success: #059669;
-  --color-warning: #d97706;
-  --color-danger: #dc2626;
-  --radius-sm: 6px;
+  --color-surface-muted: #f8fafc;
+  --color-surface-translucent: rgba(255, 255, 255, 0.9);
+
+  /* Sidebar (macOS-style light vibrancy) */
+  --color-sidebar: rgba(255, 255, 255, 0.9);
+  --color-sidebar-hover: rgba(0, 0, 0, 0.05);
+  --color-sidebar-active: rgba(23, 119, 255, 0.12);
+
+  /* Borders & hairlines */
+  --color-border: #e3e3e8;
+  --color-border-strong: #d2d2d7;
+  --color-hairline: rgba(0, 0, 0, 0.08);
+
+  /* Text */
+  --color-text: #1d1d1f;
+  --color-text-muted: #6e6e73;
+  --color-text-subtle: #86868b;
+
+  /* Accent (Apple blue) */
+  --color-primary: #1777ff;
+  --color-primary-hover: #3a5df9;
+  --color-primary-active: #0a5ee8;
+  --color-primary-soft: #e3eeff;
+  --color-primary-gradient: linear-gradient(180deg, #0772f5 0%, #0a2466 100%);
+
+  /* Semantic */
+  --color-success: #1a8f4c;
+  --color-success-soft: #e7f7ed;
+  --color-warning: #b25e09;
+  --color-warning-soft: #fdf3e7;
+  --color-danger: #d70015;
+  --color-danger-soft: #fdecee;
+
+  /* Radius */
+  --radius-sm: 8px;
   --radius-md: 10px;
-  --radius-lg: 14px;
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
-  --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
-  --sidebar-width: 248px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-pill: 980px;
+
+  /* Layered, soft shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 12px 30px -10px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 20px 56px rgba(23, 119, 255, 0.18);
+  --shadow-focus: 0 0 0 4px rgba(59, 130, 246, 0.2);
+
+  /* Layout */
+  --sidebar-width: 0px;
   --topbar-height: 56px;
-  --font-sans: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+  --transition-fast: 0.18s var(--ease-out);
+  --transition-base: 0.28s var(--ease-out);
+
+  /* Typography */
+  --font-sans: MiSans, 'MiSans Medium', ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', sans-serif;
 }

@@ -396,6 +396,42 @@ class RequirementIssueWorkflowTests(unittest.TestCase):
         self.assertIn("GET /users/me", review_issues[0]["source_excerpt"])
         self.assertIn("补充接口断言", review_issues[0]["suggestion"])
 
+    def test_accept_ai_suggestion_for_review_issue_confirms_item_without_revision(self):
+        document_id = self._seed_document(
+            "| 分类 | 方法 | Path | 描述 |\n"
+            "| --- | --- | --- | --- |\n"
+            "| 用户 | GET | `/users/me` | 获取当前用户信息 |",
+            parse_status="unparsed",
+        )
+        parsed = self.client.post(f"/api/requirements/documents/{document_id}/parse")
+        self.assertEqual(parsed.status_code, 200)
+        review_point = [item for item in parsed.json()["requirement_points"] if item["need_review"]][0]
+        issue = [
+            item for item in self.client.get(f"/api/requirements/documents/{document_id}/issues").json()["items"]
+            if item["requirement_item_id"] == review_point["id"]
+        ][0]
+
+        accepted = self.client.post(
+            f"/api/requirements/issues/{issue['id']}/accept-suggestion",
+            json={"reason": "采纳 AI 建议确认接口断言口径", "operator": "pm"},
+        )
+
+        self.assertEqual(accepted.status_code, 200)
+        self.assertEqual(accepted.json()["issue"]["status"], "resolved")
+        self.assertIsNone(accepted.json()["revision"])
+        self.assertEqual(accepted.json()["document"]["parse_status"], "pending_review")
+
+        active_issues = self.client.get(f"/api/requirements/documents/{document_id}/issues").json()["items"]
+        self.assertNotIn(issue["id"], {item["id"] for item in active_issues})
+
+        items = self.client.get(f"/api/requirements/documents/{document_id}/items").json()["items"]
+        self.assertEqual(items[0]["need_review"], False)
+        self.assertEqual(items[0]["confirmed"], True)
+
+        revisions = self.client.get(f"/api/requirements/documents/{document_id}/revisions")
+        self.assertEqual(revisions.status_code, 200)
+        self.assertEqual(revisions.json()["items"], [])
+
     def test_api_document_with_status_code_contract_has_approved_points(self):
         document_id = self._seed_document(
             "Base URL: `https://api.example.com`\n\n"

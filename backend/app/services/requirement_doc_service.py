@@ -503,6 +503,13 @@ class RequirementDocService:
         suggestion = (issue.suggestion or "").strip()
         if not suggestion:
             raise ValueError("问题项没有可采纳的 AI 修改建议")
+        if issue.issue_type == "待确认" and issue.requirement_item_id:
+            return self._confirm_review_issue(
+                issue,
+                operator=operator,
+                reason=reason or "采纳 AI 建议确认复核项",
+                action_type="accept_ai_suggestion",
+            )
         return self._revise_issue(
             issue,
             suggestion,
@@ -510,6 +517,36 @@ class RequirementDocService:
             reason=reason or "采纳 AI 修改建议",
             action_type="accept_ai_suggestion",
         )
+
+    def _confirm_review_issue(
+        self,
+        issue: RequirementIssue,
+        *,
+        operator: str,
+        reason: str,
+        action_type: str,
+    ) -> Dict[str, Any]:
+        document = self.get_document(issue.document_id)
+        if not document or document.status != "active":
+            raise ValueError("需求文档不存在")
+        item = self.db.query(RequirementItem).filter(RequirementItem.id == issue.requirement_item_id).first()
+        if not item:
+            raise ValueError("问题项关联的需求点不存在")
+
+        item.need_review = 0
+        item.confirmed = 1
+        issue.status = "resolved"
+        issue.issue_type = "已解决"
+        issue.blocking = 0
+        issue.operator = operator
+        issue.resolved_at = sql_func.now()
+        self._record_issue_action(issue, action_type, operator, reason, {"requirement_item_id": item.id})
+        self._resolve_issue_todo(issue, "采纳 AI 建议后复核项已确认")
+        self._refresh_document_review_gate(issue.document_id)
+        self.db.commit()
+        self.db.refresh(issue)
+        self.db.refresh(document)
+        return {"issue": issue.to_dict(), "revision": None, "document": document.to_dict()}
 
     def _revise_issue(
         self,

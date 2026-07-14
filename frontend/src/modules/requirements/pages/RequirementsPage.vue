@@ -184,12 +184,34 @@
                       <div v-if="!(issue?.source_excerpt || issue?.suggestion || issue?.ai_reason)" class="list-item-meta">暂无更多依据或建议</div>
                     </div>
                     <div class="issue-card-actions">
-                      <button type="button" class="btn btn-sm" :disabled="actionLoading || !issue?.id" @click.stop="openIssueEditor('modify', index)">修改原文片段</button>
-                      <button type="button" class="btn btn-sm" :disabled="actionLoading || !issue?.id" @click.stop="submitAcceptSuggestion(index)">采纳 AI 建议</button>
-                      <button type="button" class="btn btn-sm" :disabled="actionLoading || !issue?.id" @click.stop="openIssueEditor('ignore', index)">忽略并留痕</button>
-                      <button type="button" class="btn btn-sm" :disabled="actionLoading || !issue?.id" @click.stop="submitManualReview(index)">转人工确认</button>
-                      <button type="button" class="btn btn-sm" :disabled="actionLoading || !issue?.id" @click.stop="submitResolveIssue(index)">标记已解决</button>
-                      <button type="button" class="btn btn-sm" :disabled="actionLoading || !issue?.id" @click.stop="submitIssueRecheck(index)">重新检查</button>
+                      <button
+                        v-if="canConfirmIssueJudgement(issue)"
+                        type="button"
+                        class="btn btn-sm primary"
+                        :disabled="actionLoading || !issue?.id"
+                        @click.stop="submitConfirmIssueJudgement(index)"
+                      >
+                        确认无误
+                      </button>
+                      <button
+                        v-if="canApplyAiRevision(issue)"
+                        type="button"
+                        class="btn btn-sm primary"
+                        :disabled="actionLoading || !issue?.id"
+                        @click.stop="submitApplyAiRevision(index)"
+                      >
+                        应用 AI 修订
+                      </button>
+                      <button type="button" class="btn btn-sm" :disabled="actionLoading || !issue?.id" @click.stop="openIssueEditor('modify', index)">补充说明</button>
+                      <details class="issue-action-more" @click.stop>
+                        <summary class="btn btn-sm">更多</summary>
+                        <div class="issue-action-menu">
+                          <button type="button" class="btn btn-sm" :disabled="actionLoading || !issue?.id" @click.stop="openIssueEditor('ignore', index)">忽略并留痕</button>
+                          <button type="button" class="btn btn-sm" :disabled="actionLoading || !issue?.id" @click.stop="submitManualReview(index)">转人工确认</button>
+                          <button type="button" class="btn btn-sm" :disabled="actionLoading || !issue?.id" @click.stop="submitResolveIssue(index)">标记已解决</button>
+                          <button type="button" class="btn btn-sm" :disabled="actionLoading || !issue?.id" @click.stop="submitIssueRecheck(index)">重新检查</button>
+                        </div>
+                      </details>
                     </div>
                   </article>
                 </div>
@@ -767,6 +789,28 @@ function issueClass(issue) {
   }
 }
 
+function issueWorkflowType(issue) {
+  if (!issue || typeof issue === 'string') return ''
+  return issue.issue_type || issue.type || ''
+}
+
+function hasActionableAiRevision(issue) {
+  if (!issue || typeof issue === 'string') return false
+  const suggestion = String(issue.suggestion || '').trim()
+  if (!suggestion) return false
+  const genericHints = ['请补充', '如确认无误', '完成处理留痕', '重新检查', '确认业务含义']
+  return !genericHints.some((hint) => suggestion.includes(hint))
+}
+
+function canApplyAiRevision(issue) {
+  const type = issueWorkflowType(issue)
+  return ['待修改', '逻辑漏洞', '格式问题'].includes(type) && hasActionableAiRevision(issue)
+}
+
+function canConfirmIssueJudgement(issue) {
+  return issueWorkflowType(issue) === '待确认'
+}
+
 function documentTypeLabel(type) {
   const labels = {
     requirement_document: '需求文档',
@@ -1020,24 +1064,47 @@ async function submitIssueEditor() {
   }
 }
 
-async function submitAcceptSuggestion(index = null) {
+async function submitApplyAiRevision(index = null) {
   activateIssue(index)
   if (!selectedIssueId.value || !selectedId.value) return
   actionLoading.value = true
   try {
     const result = await acceptRequirementIssueSuggestion(selectedIssueId.value, {
-      reason: '前端采纳 AI 修改建议',
+      reason: '前端应用 AI 修订',
       operator: 'frontend',
     })
     if (result.document?.parse_status === 'pending_review') {
-      showMessage('已采纳 AI 建议并重新检查，可继续确认入库', 'success')
+      showMessage('已应用 AI 修订并重新检查，可继续确认入库', 'success')
     } else {
-      showMessage('已采纳 AI 建议并重新检查，仍有待处理问题', 'warning')
+      showMessage('已应用 AI 修订并重新检查，仍有待处理问题', 'warning')
     }
     await selectDocument(selectedId.value)
     await loadDocuments()
   } catch (error) {
-    showMessage(`采纳 AI 建议失败：${error.message}`, 'danger')
+    showMessage(`应用 AI 修订失败：${error.message}`, 'danger')
+  } finally {
+    actionLoading.value = false
+  }
+}
+
+async function submitConfirmIssueJudgement(index = null) {
+  activateIssue(index)
+  if (!selectedIssueId.value || !selectedId.value) return
+  actionLoading.value = true
+  try {
+    const result = await acceptRequirementIssueSuggestion(selectedIssueId.value, {
+      reason: '前端确认当前解析判断无误',
+      operator: 'frontend',
+    })
+    if (result.document?.parse_status === 'pending_review') {
+      showMessage('已确认无误并关闭问题项，可继续确认入库', 'success')
+    } else {
+      showMessage('已确认无误并关闭问题项，仍有待处理问题', 'warning')
+    }
+    await selectDocument(selectedId.value)
+    await loadDocuments()
+  } catch (error) {
+    showMessage(`确认问题项失败：${error.message}`, 'danger')
   } finally {
     actionLoading.value = false
   }

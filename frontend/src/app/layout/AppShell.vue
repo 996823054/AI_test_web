@@ -1,14 +1,13 @@
 <template>
   <div class="app-shell">
-    <aside class="sidebar">
+    <header class="site-header">
       <div class="sidebar-brand">
         <strong>AI 测试平台</strong>
         <span>Testing Asset Platform</span>
       </div>
-      <nav v-for="group in navGroups" :key="group.label" class="sidebar-group">
-        <div class="sidebar-group-label">{{ group.label }}</div>
+      <nav class="top-nav">
         <RouterLink
-          v-for="item in group.items"
+          v-for="item in navItems"
           :key="item.to"
           :to="item.to"
           class="sidebar-link"
@@ -18,7 +17,7 @@
           <small>{{ item.desc }}</small>
         </RouterLink>
       </nav>
-    </aside>
+    </header>
     <div class="main-area">
       <header class="topbar">
         <div class="breadcrumb">
@@ -38,6 +37,8 @@ import { useRoute } from 'vue-router'
 import { navGroups } from '../navigation.js'
 
 const route = useRoute()
+
+const navItems = computed(() => navGroups.flatMap((group) => group.items))
 
 const currentTitle = computed(() => {
   for (const group of navGroups) {
