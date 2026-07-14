@@ -34,6 +34,7 @@
 
 - [AI 测试平台开发任务拆分](delivery/AI测试平台开发任务拆分.md)
 - [AI 测试平台 AI 可执行开发计划](delivery/AI测试平台AI可执行开发计划.md)
+- [批次 1 仓库治理验收证据](delivery/批次1仓库治理验收证据.md)
 - [RC-10 验收证据](delivery/RC-10验收证据.md)
 
 ### 运维

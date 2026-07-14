@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 import unittest
 from pathlib import Path
 
@@ -48,6 +49,16 @@ def run_git(*args: str, input_text: str | None = None) -> subprocess.CompletedPr
 
 
 class RepositoryGovernanceTest(unittest.TestCase):
+    def test_document_links_are_valid(self) -> None:
+        result = subprocess.run(
+            (sys.executable, "scripts/check_document_links.py"),
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_runtime_products_are_not_tracked(self) -> None:
         result = run_git("ls-files")
         self.assertEqual(result.returncode, 0, result.stderr)

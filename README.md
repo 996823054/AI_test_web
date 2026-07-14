@@ -45,8 +45,11 @@ npm run dev
 
 ```bash
 python -m unittest tests.test_repository_governance -v
+python scripts/check_document_links.py
 cd backend && python -m unittest discover -s tests
 cd ../frontend && npm test && npm run build
 ```
+
+仓库治理测试会同时调用文档链接检查；单独运行脚本可获得链接数量和失败位置。
 
 日志、SQLite、真实上传文件、Python 缓存、构建产物、依赖目录和本地工具状态都属于运行产物，不得提交。具体规则见[运行产物说明](docs/operations/运行产物.md)。
