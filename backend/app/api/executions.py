@@ -1,60 +1,52 @@
 """
 执行管理路由
 ============
-测试用例的执行、批量执行、结果查询
-
-这个文件建议始终保持“路由层”职责：
-    - 接收执行请求
-    - 调用 TestExecutorService
-    - 返回执行结果或错误码
-
-不要在这里写断言、请求拼装、日志落库等核心逻辑。
-这些都应该继续放在 service 层。
+Router -> ExecutionService -> Harness -> Runner
+禁止 Router 直连 Runner / TestExecutorService。
 """
 
+from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
-from typing import Optional, List
 
 from app.database import get_db
+from app.domains.executions.services.execution_service import ExecutionService
 from app.schemas.execution import (
-    ExecuteSingleRequest, ExecuteBatchRequest,
-    ExecutionResponse, BatchResultResponse,
+    BatchResultResponse,
+    ExecuteBatchRequest,
+    ExecuteSingleRequest,
 )
-from app.domains.executions.runners.api_runner import APIRunner
-from app.services.test_executor import TestExecutorService
 
 router = APIRouter()
 
 
+class CreateTaskRequest(BaseModel):
+    case_ids: List[int] = Field(default_factory=list)
+    base_url: str = ""
+    timeout_seconds: int = Field(default=300, ge=1, le=3600)
+    auto_start: bool = False
+
+
 @router.post("/run", summary="执行单条用例")
 def execute_single(request: ExecuteSingleRequest, db: Session = Depends(get_db)):
-    """执行单条测试用例"""
-    runner = APIRunner(db, base_url=request.base_url or "")
+    service = ExecutionService(db, base_url=request.base_url or "")
     try:
-        return runner.run_single(request.case_id)
+        return service.run_single(request.case_id)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/run-batch", response_model=BatchResultResponse, summary="批量执行")
 def execute_batch(request: ExecuteBatchRequest, db: Session = Depends(get_db)):
-    """
-    批量执行测试用例
-
-    支持三种选择方式（按优先级）：
-    1. case_ids: 指定用例ID列表
-    2. api_id: 某个接口的所有用例
-    3. project_id: 某个项目的所有用例
-    """
-    service = TestExecutorService(db, base_url=request.base_url or "")
-    result = service.execute_batch(
+    service = ExecutionService(db, base_url=request.base_url or "")
+    return service.run_batch(
         case_ids=request.case_ids,
         api_id=request.api_id,
         project_id=request.project_id,
         triggered_by=request.triggered_by,
     )
-    return result
 
 
 @router.get("/batches", summary="获取执行批次列表")
@@ -63,15 +55,13 @@ def list_batches(
     page_size: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
-    """获取执行批次列表"""
-    service = TestExecutorService(db)
+    service = ExecutionService(db)
     return service.list_batches(page=page, page_size=page_size)
 
 
 @router.get("/batches/{batch_id}", response_model=BatchResultResponse, summary="获取批次详情")
 def get_batch_detail(batch_id: int, db: Session = Depends(get_db)):
-    """获取批次执行详情"""
-    service = TestExecutorService(db)
+    service = ExecutionService(db)
     result = service.get_batch_detail(batch_id)
     if not result:
         raise HTTPException(status_code=404, detail="批次不存在")
@@ -84,7 +74,68 @@ def get_case_history(
     limit: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
-    """获取某条用例的执行历史"""
-    service = TestExecutorService(db)
+    service = ExecutionService(db)
     return service.get_case_history(case_id, limit=limit)
 
+
+@router.post("/tasks", summary="创建执行任务")
+def create_task(request: CreateTaskRequest, db: Session = Depends(get_db)):
+    if not request.case_ids:
+        raise HTTPException(status_code=400, detail="case_ids 不能为空")
+    service = ExecutionService(db, base_url=request.base_url or "")
+    task = service.create_task(
+        case_ids=request.case_ids,
+        base_url=request.base_url or "",
+        timeout_seconds=request.timeout_seconds,
+    )
+    if request.auto_start:
+        try:
+            return service.start_task(task["task_id"])
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return task
+
+
+@router.post("/tasks/{task_id}/start", summary="启动执行任务")
+def start_task(task_id: str, db: Session = Depends(get_db)):
+    service = ExecutionService(db)
+    try:
+        return service.start_task(task_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/tasks/{task_id}/cancel", summary="取消执行任务")
+def cancel_task(task_id: str, db: Session = Depends(get_db)):
+    service = ExecutionService(db)
+    try:
+        return service.cancel_task(task_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/tasks/{task_id}/retry", summary="重试执行任务")
+def retry_task(task_id: str, db: Session = Depends(get_db)):
+    service = ExecutionService(db)
+    try:
+        return service.retry_task(task_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/tasks/{task_id}", summary="获取执行任务")
+def get_task(task_id: str, db: Session = Depends(get_db)):
+    service = ExecutionService(db)
+    try:
+        return service.get_task(task_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/tasks/{task_id}/logs", summary="获取执行任务日志")
+def get_task_logs(task_id: str, db: Session = Depends(get_db)):
+    service = ExecutionService(db)
+    try:
+        return {"task_id": task_id, "logs": service.get_task_logs(task_id)}
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
