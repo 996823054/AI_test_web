@@ -1,6 +1,1 @@
-"""
-路由层
-======
-定义所有 API 端点
-"""
-
+"""Legacy routers package. Prefer app.api.*. Remove after call-site migration."""

@@ -1,7 +1,5 @@
 """
-数据库模型层
-============
-定义所有数据库表结构
+Compatibility model package. Prefer app.domains.*.models / app.platform.user.
 """
 
 from app.models.project import Project
@@ -35,4 +33,3 @@ __all__ = [
     "TodoItem",
     "TodoActionLog",
 ]
-

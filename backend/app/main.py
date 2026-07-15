@@ -12,10 +12,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
-from app.core.config import settings
-from app.core.database import engine
-from app.core.lifecycle import on_startup as run_startup
-from app.modules import register_routers
+from app.platform.config import settings
+from app.platform.database import engine
+from app.platform.lifecycle import on_startup as run_startup
+from app.api import register_routers
 
 # 创建 FastAPI 应用
 app = FastAPI(

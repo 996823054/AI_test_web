@@ -1,6 +1,1 @@
-"""
-Pydantic 模型层
-===============
-定义 API 请求和响应的数据结构
-"""
-
+"""Legacy schemas package. Prefer app.domains.*.schemas."""

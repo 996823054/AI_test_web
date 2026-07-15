@@ -1,3 +1,1 @@
-"""
-Core application wiring.
-"""
+"""Legacy core package. Prefer app.platform."""

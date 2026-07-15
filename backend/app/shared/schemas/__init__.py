@@ -1,3 +1,1 @@
-"""
-Shared schema namespace.
-"""
+"""Shared schema namespace placeholder."""
