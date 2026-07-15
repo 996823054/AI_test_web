@@ -1,5 +1,13 @@
 # AI 测试平台
 
+## 代码目录
+
+- 后端权威目录：`backend/app/api`、`domains`、`ai`、`platform`、`shared`
+- 前端权威目录：`frontend/src/app`、`modules`、`shared`（`legacy` 仅兼容）
+- 文档权威关系：`docs/README.md`；兼容层清单：`docs/delivery/兼容层迁移清单.md`
+- 实验能力：`backend/app/experiments`（默认不进主路由）
+
+
 AI 测试平台以可追溯测试资产为核心，连接需求、Case、接口、执行、报告、AI 能力、变更和人工复核流程。
 
 ## 权威文档
