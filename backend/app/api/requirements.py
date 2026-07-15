@@ -9,11 +9,42 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from app.api.requirement_documents import (
+    RequirementDocumentListResponse,
+    RequirementDocumentResponse,
+    analyze_requirement_document,
+    get_requirement_document,
+    list_requirement_categories,
+    list_requirement_documents,
+    upload_requirement_document,
+)
 from app.database import get_db
 from app.services.requirement_doc_service import RequirementBlockingIssuesError, RequirementDocService
 from app.services.requirement_tree_service import RequirementTreeService
 
 router = APIRouter()
+
+# Canonical document inventory endpoints (also proxied by deprecated /api/ai/documents*).
+router.add_api_route(
+    "/documents/upload",
+    upload_requirement_document,
+    methods=["POST"],
+    response_model=RequirementDocumentResponse,
+    summary="上传需求文档",
+)
+router.add_api_route(
+    "/documents",
+    list_requirement_documents,
+    methods=["GET"],
+    response_model=RequirementDocumentListResponse,
+    summary="获取需求文档列表",
+)
+router.add_api_route(
+    "/documents/categories",
+    list_requirement_categories,
+    methods=["GET"],
+    summary="获取需求文档分类",
+)
 
 
 class TreeNodeCreateRequest(BaseModel):
@@ -189,6 +220,16 @@ def list_trash_documents(
     if status not in {"deleted", "archived"}:
         raise HTTPException(status_code=400, detail="status 仅支持 deleted 或 archived")
     return service.list_documents(status=status)
+
+
+@router.get("/documents/{document_id}", response_model=RequirementDocumentResponse, summary="获取需求文档详情")
+def get_document_detail(document_id: int, db: Session = Depends(get_db)):
+    return get_requirement_document(document_id=document_id, db=db)
+
+
+@router.get("/documents/{document_id}/analysis", summary="获取需求文档结构化解析结果")
+def get_document_analysis(document_id: int, db: Session = Depends(get_db)):
+    return analyze_requirement_document(document_id=document_id, db=db)
 
 
 @router.post("/documents/{document_id}/parse", summary="触发需求解析")

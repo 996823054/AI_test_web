@@ -57,7 +57,7 @@ class RequirementUploadApiTests(unittest.TestCase):
             scheduled_tasks.append((func, args, kwargs))
 
         with (
-            patch("app.routers.ai_service.AIClient", FailingAIClient),
+            patch("app.api.requirement_documents.AIClient", FailingAIClient),
             patch.object(BackgroundTasks, "add_task", record_task),
         ):
             response = self.client.post(

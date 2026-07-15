@@ -1,29 +1,19 @@
 """
 AI 服务路由
 ===========
-AI 相关的接口：用例生成、结果分析、智能问答
+AI 工作台能力：chat / analyze-failure / generate-from-doc / Phoenix / settings。
 
-当前这个文件同时承载了两类职责：
-    1. AI 能力接口
-    2. 需求文档相关接口
-
-为了后续结构更清晰，建议你逐步把“需求中心”相关能力拆到独立前缀：
-    - /api/requirements/*
-
-保留在这里的应更偏 AI 工作台能力：
-    - chat
-    - analyze-failure
-    - generate-from-doc
+`/documents*` 为弃用代理，权威入口在 `/api/requirements/documents*`。
+删除条件：调用方完成迁移且契约测试改为仅覆盖 requirements 前缀。
 """
 
-import logging
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from typing import Optional, Dict, Any
 
-from app.database import SessionLocal, get_db
+from app.database import get_db
 from app.services.ai_client import AIClient
 from app.services.app_settings_service import AppSettingsService
 from app.services.case_generator import CaseGeneratorService
@@ -31,14 +21,19 @@ from app.services.phoenix_evaluator import PhoenixEvaluatorService
 from app.services.requirement_doc_service import RequirementBlockingIssuesError, RequirementDocService
 from app.services.ai_case_draft_service import AICaseDraftService
 from app.skills.case_generate_skill import CaseGenerateSkill
-from app.schemas.requirement_document import (
+from app.api.requirement_documents import (
     RequirementDocumentListResponse,
     RequirementDocumentResponse,
-    GenerateCaseFromDocumentRequest,
+    analyze_requirement_document,
+    get_requirement_document,
+    list_requirement_categories,
+    list_requirement_documents,
+    summarize_uploaded_document,
+    upload_requirement_document,
 )
+from app.schemas.requirement_document import GenerateCaseFromDocumentRequest
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
 
 
 class ChatRequest(BaseModel):
@@ -169,108 +164,45 @@ def save_ai_settings(request: AISettingsUpdateRequest):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
-def summarize_uploaded_document(document_id: int, content: str, meta: Dict[str, Any]) -> None:
-    """Generate the optional AI summary outside the upload request path."""
-    db = SessionLocal()
-    try:
-        summary = AIClient().summarize_requirement_document(content=content, meta=meta)
-        RequirementDocService(db).update_ai_summary(document_id, summary)
-    except Exception as exc:  # pragma: no cover - best-effort background enrichment
-        logger.warning("Failed to summarize uploaded document %s: %s", document_id, exc)
-    finally:
-        db.close()
-
-
-@router.post("/documents/upload", response_model=RequirementDocumentResponse, summary="上传需求文档")
-async def upload_requirement_document(
-    background_tasks: BackgroundTasks,
-    file: UploadFile = File(...),
-    title: str = Form(""),
-    category: str = Form("未分类"),
-    module: str = Form(""),
-    dependency_scope: str = Form(""),
-    dependency_notes: str = Form(""),
-    tags: str = Form(""),
-    created_by: str = Form(""),
-    tree_node_id: Optional[int] = Form(None),
-    project_id: Optional[int] = Form(None),
-    db: Session = Depends(get_db),
-):
-    """上传需求文档，保存文件并提取内容"""
-    service = RequirementDocService(db)
-    try:
-        document = await service.save_document(
-            file=file,
-            title=title,
-            category=category,
-            module=module,
-            dependency_scope=dependency_scope,
-            dependency_notes=dependency_notes,
-            tags=tags,
-            created_by=created_by,
-            tree_node_id=tree_node_id,
-            project_id=project_id,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-    background_tasks.add_task(
-        summarize_uploaded_document,
-        document.id,
-        document.extracted_content,
-        {
-            "title": document.title,
-            "category": document.category,
-            "module": document.module,
-            "project_id": document.project_id,
-            "dependency_scope": document.dependency_scope,
-            "dependency_notes": document.dependency_notes,
-        },
-    )
-    return document.to_dict()
-
-
-@router.get("/documents", response_model=RequirementDocumentListResponse, summary="获取需求文档列表")
-def list_requirement_documents(
-    category: Optional[str] = Query(None),
-    keyword: Optional[str] = Query(None),
-    tree_node_id: Optional[int] = Query(None),
-    page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
-    db: Session = Depends(get_db),
-):
-    service = RequirementDocService(db)
-    return service.list_documents(
-        category=category,
-        keyword=keyword,
-        tree_node_id=tree_node_id,
-        page=page,
-        page_size=page_size,
-    )
-
-
-@router.get("/documents/categories", summary="获取需求文档分类")
-def list_requirement_categories(db: Session = Depends(get_db)):
-    service = RequirementDocService(db)
-    return {"items": service.list_categories()}
-
-
-@router.get("/documents/{document_id}", response_model=RequirementDocumentResponse, summary="获取需求文档详情")
-def get_requirement_document(document_id: int, db: Session = Depends(get_db)):
-    service = RequirementDocService(db)
-    document = service.get_document(document_id)
-    if not document:
-        raise HTTPException(status_code=404, detail="需求文档不存在")
-    return document.to_dict()
-
-
-@router.get("/documents/{document_id}/analysis", summary="获取需求文档结构化解析结果")
-def analyze_requirement_document(document_id: int, db: Session = Depends(get_db)):
-    service = RequirementDocService(db)
-    try:
-        return service.analyze_document(document_id)
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+# Deprecated proxies -> app.api.requirement_documents /api/requirements/documents*
+router.add_api_route(
+    "/documents/upload",
+    upload_requirement_document,
+    methods=["POST"],
+    response_model=RequirementDocumentResponse,
+    summary="上传需求文档（deprecated：请改用 /api/requirements/documents/upload）",
+    deprecated=True,
+)
+router.add_api_route(
+    "/documents",
+    list_requirement_documents,
+    methods=["GET"],
+    response_model=RequirementDocumentListResponse,
+    summary="获取需求文档列表（deprecated：请改用 /api/requirements/documents）",
+    deprecated=True,
+)
+router.add_api_route(
+    "/documents/categories",
+    list_requirement_categories,
+    methods=["GET"],
+    summary="获取需求文档分类（deprecated：请改用 /api/requirements/documents/categories）",
+    deprecated=True,
+)
+router.add_api_route(
+    "/documents/{document_id}",
+    get_requirement_document,
+    methods=["GET"],
+    response_model=RequirementDocumentResponse,
+    summary="获取需求文档详情（deprecated：请改用 /api/requirements/documents/{id}）",
+    deprecated=True,
+)
+router.add_api_route(
+    "/documents/{document_id}/analysis",
+    analyze_requirement_document,
+    methods=["GET"],
+    summary="获取需求文档结构化解析结果（deprecated：请改用 /api/requirements/documents/{id}/analysis）",
+    deprecated=True,
+)
 
 
 @router.post("/generate-cases-from-document", summary="基于需求文档生成测试用例")
