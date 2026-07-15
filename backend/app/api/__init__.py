@@ -11,7 +11,6 @@ from app.api.ai_service import router as ai_router
 from app.api.api_manager import router as api_manager_router
 from app.api.changelog import router as changelog_router
 from app.api.executions import router as executions_router
-from app.api.midscene_ios import router as midscene_ios_router
 from app.api.reports import router as reports_router
 from app.api.settings import router as settings_router
 from app.api.test_cases import router as cases_router
@@ -28,8 +27,14 @@ def register_routers(app: FastAPI) -> None:
     app.include_router(requirements_router, prefix="/api/requirements", tags=["需求中心"])
     app.include_router(api_manager_router, prefix="/api/apis", tags=["接口中心"])
     app.include_router(changelog_router, prefix="/api/changelog", tags=["变更中心"])
-    app.include_router(midscene_ios_router, prefix="/api/midscene-ios", tags=["Midscene iOS"])
     app.include_router(settings_router, prefix="/api/settings", tags=["系统设置"])
+
+    # Experimental mobile pre-research route; keep off the default platform assembly.
+    import os
+    if os.getenv("FEATURE_MIDSCENE_IOS", "").lower() in {"1", "true", "yes", "on"}:
+        from app.api.midscene_ios import router as midscene_ios_router
+
+        app.include_router(midscene_ios_router, prefix="/api/midscene-ios", tags=["Midscene iOS"])
     app.include_router(todos_router, prefix="/api/todos", tags=["待办中心"])
 
 

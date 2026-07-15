@@ -22,6 +22,51 @@ export const navGroups = [
         label: 'Case 中心',
         desc: '正式 case 资产、来源追溯与覆盖信息',
       },
+      {
+        to: '/apis',
+        label: '接口中心',
+        desc: '接口事实源、环境变量与调试入口',
+      },
+    ],
+  },
+  {
+    label: '执行与证据',
+    items: [
+      {
+        to: '/executions',
+        label: '执行中心',
+        desc: '任务、日志、取消与重试',
+      },
+      {
+        to: '/reports',
+        label: '报告中心',
+        desc: '报告、证据与导出',
+      },
+      {
+        to: '/mobile',
+        label: '移动端执行中心',
+        desc: '设备、App 与移动端执行',
+      },
+    ],
+  },
+  {
+    label: '智能与治理',
+    items: [
+      {
+        to: '/ai',
+        label: 'AI 能力中心',
+        desc: 'Skill / Prompt / Evaluator',
+      },
+      {
+        to: '/changes',
+        label: '变更中心',
+        desc: 'ChangeRecord 与影响分析',
+      },
+      {
+        to: '/todos',
+        label: '待办中心',
+        desc: '待办注册与核销闭环',
+      },
     ],
   },
   {
@@ -36,11 +81,4 @@ export const navGroups = [
   },
 ]
 
-export const hiddenUntilImplemented = [
-  '接口中心',
-  '移动端执行中心',
-  '执行中心',
-  '报告中心',
-  'AI 能力中心',
-  '治理中心',
-]
+export const hiddenUntilImplemented = []
